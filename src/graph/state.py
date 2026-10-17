@@ -23,4 +23,5 @@ class AgentState(TypedDict, total=False):
     proposed_action: Optional[Dict[str, Any]]
     approval_status: Optional[str]
     execution_result: Optional[Dict[str, Any]]
+    final_summary: Optional[Dict[str, Any]]
     error: Optional[str]

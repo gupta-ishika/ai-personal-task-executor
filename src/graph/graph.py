@@ -14,17 +14,15 @@ from src.graph.approval import approval_node, route_approval
 
 from src.agents.action_agent import action_agent_node
 
+from src.graph.summary import final_summary_node
+
 # Keep aliases for backward compatibility
 supervisor_placeholder = supervisor_node
 research_placeholder = research_agent_node
 planning_placeholder = planning_agent_node
 approval_placeholder = approval_node
 action_placeholder = action_agent_node
-
-
-def final_summary_placeholder(state: AgentState) -> Dict[str, Any]:
-    """Placeholder final summary node."""
-    return state
+final_summary_placeholder = final_summary_node
 
 
 def route_supervisor(state: AgentState) -> Literal["research_agent", "planning_agent"]:
@@ -48,7 +46,7 @@ def create_task_graph(checkpointer: Optional[Any] = None):
     builder.add_node("planning_agent", planning_agent_node)
     builder.add_node("approval_node", approval_node)
     builder.add_node("action_agent", action_agent_node)
-    builder.add_node("final_summary", final_summary_placeholder)
+    builder.add_node("final_summary", final_summary_node)
 
     # Connect edges
     builder.add_edge(START, "supervisor")

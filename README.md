@@ -35,7 +35,7 @@ See the [docs/](docs/README.md) directory for full project specifications and ar
 - [`MEMORY.md`](MEMORY.md) — current project state & next steps
 
 ## Status
-Phase 7 (Action Agent + Calendar/Notes MCP) completed; Phase 8 (Final Summary & Polish) in progress. See [`MEMORY.md`](MEMORY.md) for current status and next step.
+All phases (1 through 8) completed. Fully implemented, human-in-the-loop verified, and passing 76 automated tests. See [`MEMORY.md`](MEMORY.md) for project status.
 
 ## Setup
 1. Copy `.env.example` to `.env.local` and fill in real values

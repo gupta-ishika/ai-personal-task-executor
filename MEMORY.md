@@ -1,7 +1,7 @@
 # Project Memory
 
 ## Current Status
-Phase 7 (Action Agent + Calendar/Notes MCP) completed. Calendar MCP (`list_events`, `create_event`) and Notes MCP (`save_note`) implemented, Action Agent tool dispatcher with approval verification, retry handling, and ask-user fallback implemented and verified with 66 tests.
+All 8 project phases completed successfully. The AI Personal Task Executor is fully implemented with Supervisor routing, Research Agent ReAct loop with Search MCP, Planning Agent payload generation across all 3 variants with re-planning on rejection, Human-in-the-Loop approval gate with interrupt and safe decision parsing, Action Agent executing Calendar and Notes MCP tools with single-retry failure recovery, and 3-part final run summary. The entire test suite of 76 tests passes.
 
 ## Completed
 - docs/PRD.md
@@ -19,12 +19,13 @@ Phase 7 (Action Agent + Calendar/Notes MCP) completed. Calendar MCP (`list_event
 - Phase 5: Planning Agent (Concrete action payload formulation across all 3 variants, re-planning alternative selection, state integration, and test suite)
 - Phase 6: Human-in-the-Loop Approval (Interrupt prompt with exact payload, decision parsing, approve/reject paths, re-planning cycle, and test suite)
 - Phase 7: Action Agent + Calendar/Notes MCP (Calendar and Notes MCP wrappers, Action Agent execution, approval gate verification, single retry, ask-user failure handling, and test suite)
+- Phase 8: Final Summary & Polish (3-part end-of-run summary [Researched/Planned/Done], edge case handling, full regression suite across all 3 variants, 76 passing tests)
 
 ## Current Task
-Phase 8: Final Summary & Polish (see TASKS.md)
+Completed. Project is ready for demonstration and usage.
 
 ## Known Issues
 None.
 
 ## Next Step
-Implement Phase 8: Final Summary & Polish (Implement end-of-run summary node covering researched/planned/done, handle empty-research edge cases, run full regression across all 3 task-type variants, and finalize documentation).
+Optional future enhancements (out of scope for MVP v1): external provider OAuth flows, web UI, additional tool MCPs.

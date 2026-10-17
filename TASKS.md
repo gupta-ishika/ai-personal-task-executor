@@ -41,7 +41,7 @@
 - [x] Add tests, including simulated tool failure
 
 ## Phase 8: Final Summary & Polish
-- [ ] Implement end-of-run summary (researched / planned / done)
-- [ ] Handle empty-research and other edge-case states from docs/DESIGN.md
-- [ ] Run full test suite across all three task-type variants
-- [ ] Update MEMORY.md with final project state
+- [x] Implement end-of-run summary (researched / planned / done)
+- [x] Handle empty-research and other edge-case states from docs/DESIGN.md
+- [x] Run full test suite across all three task-type variants
+- [x] Update MEMORY.md with final project state
