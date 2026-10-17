@@ -37,7 +37,36 @@ See the [docs/](docs/README.md) directory for full project specifications and ar
 ## Status
 All phases (1 through 8) completed. Fully implemented, human-in-the-loop verified, and passing 76 automated tests. See [`MEMORY.md`](MEMORY.md) for project status.
 
-## Setup
-1. Copy `.env.example` to `.env.local` and fill in real values
-2. Install dependencies
-3. Run the project (instructions to be added once Phase 1 setup is implemented)
+## Setup & Usage
+
+### 1. Environment Setup
+```bash
+# Copy placeholder env variables
+copy env.example .env.local
+
+# Activate virtual environment
+.\venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### 2. Running the Project
+```bash
+# Interactive CLI menu
+python main.py
+
+# Run Primary Demo (Research + Plan + Approve + Schedule)
+python main.py --demo
+
+# Run Re-planning Demo (Reject first proposal -> Re-plan alternative -> Approve)
+python main.py --demo-replan
+
+# Run custom task with auto-approval
+python main.py --request "Schedule a meeting with Rahul tomorrow at 5 PM" --auto-approve
+```
+
+### 3. Running Tests
+```bash
+pytest
+```
