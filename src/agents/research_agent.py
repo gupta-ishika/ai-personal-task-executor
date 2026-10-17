@@ -15,6 +15,7 @@ import re
 from typing import Any, Dict, List, Optional
 from src.graph.state import AgentState
 from src.mcp.search_mcp import search, fetch_page
+from src.utils.llm import is_ollama_available, llm_synthesize_findings
 
 DEFAULT_MAX_ITERATIONS = 3
 
@@ -108,6 +109,22 @@ class ResearchAgent:
 
             if len(findings) >= 3:
                 break
+
+        # If all findings collected are the generic fallback ("Information regarding..."),
+        # and Ollama is available, synthesize realistic findings dynamically
+        is_all_generic = findings and all("information regarding" in f.get("title", "").lower() for f in findings)
+        if (not findings or is_all_generic) and is_ollama_available():
+            llm_items = llm_synthesize_findings(query=req, num_results=3)
+            if llm_items:
+                findings = [
+                    {
+                        "title": item["title"],
+                        "details": item["snippet"],
+                        "url": item["url"],
+                        "source": "Search MCP",
+                    }
+                    for item in llm_items
+                ]
 
         return findings
 

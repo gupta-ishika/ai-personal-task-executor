@@ -19,6 +19,7 @@ from langgraph.types import Command
 from langgraph.checkpoint.memory import MemorySaver
 
 from src.graph.graph import create_task_graph
+from src.utils.llm import is_ollama_available, DEFAULT_OLLAMA_MODEL
 
 
 def run_task(user_request: str, auto_decision: Optional[str] = None):
@@ -29,8 +30,12 @@ def run_task(user_request: str, auto_decision: Optional[str] = None):
         auto_decision: Optional automated approval decision ('approve' or 'reject')
                        for non-interactive / automated demo runs.
     """
+    ollama_online = is_ollama_available()
+    llm_info = f"Ollama ({DEFAULT_OLLAMA_MODEL})" if ollama_online else "Deterministic / Heuristics"
+
     print("\n" + "=" * 65)
     print("  AI PERSONAL TASK EXECUTOR")
+    print(f"  [LLM Engine]: {llm_info}")
     print("=" * 65)
     print(f"\n[Incoming Request]: \"{user_request}\"")
 
@@ -108,6 +113,8 @@ def run_task(user_request: str, auto_decision: Optional[str] = None):
     print("\n" + "=" * 65)
     print("  FINAL RUN SUMMARY")
     print("=" * 65)
+    if final_summary and final_summary.get("executive_summary"):
+        print(f"\n[AI Assistant Summary]:\n{final_summary['executive_summary']}\n")
     if final_summary and "text" in final_summary:
         print(final_summary["text"])
     else:

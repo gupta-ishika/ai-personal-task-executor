@@ -18,6 +18,7 @@ from src.agents.supervisor import (
     TASK_TYPE_RESEARCH_AND_SAVE,
     TASK_TYPE_RESEARCH_AND_ACTION,
 )
+from src.utils.llm import is_ollama_available, llm_generate_note_content
 
 
 def extract_schedule_details(user_request: Optional[str]) -> Dict[str, str]:
@@ -167,6 +168,13 @@ class PlanningAgent:
             content_lines.append("")
 
         content = "\n".join(content_lines)
+
+        # Enhance with Ollama AI executive analysis if available
+        if research_results and is_ollama_available():
+            ai_analysis = llm_generate_note_content(user_request, research_results)
+            if ai_analysis:
+                content += "\n\n## AI Executive Analysis\n\n" + ai_analysis
+
         summary = f"Save {len(research_results)} research findings as local Markdown note to '{filename}'"
         if was_rejected:
             summary += " (Revised format following rejection)"

@@ -157,6 +157,30 @@ def parse_user_request(user_request: Optional[str]) -> Dict[str, Any]:
     }
 
 
+from src.utils.llm import is_ollama_available, query_ollama
+
+
+def classify_task_with_llm(user_request: str) -> Optional[str]:
+    """Classify user request using local Ollama model if available."""
+    if not is_ollama_available():
+        return None
+    prompt = (
+        "Classify the following user request into one of these exact three task types:\n"
+        "- 'schedule': Direct calendar event scheduling without needing prior research\n"
+        "- 'research_and_save': Researching information and saving as notes/file\n"
+        "- 'research_and_action': Researching options first and then scheduling on calendar\n\n"
+        f"Request: \"{user_request}\"\n"
+        "Return ONLY the task type name."
+    )
+    ans = query_ollama(prompt=prompt, timeout=10.0)
+    if ans:
+        ans_clean = ans.strip().lower().replace("'", "").replace('"', "")
+        for valid in VALID_TASK_TYPES:
+            if valid in ans_clean:
+                return valid
+    return None
+
+
 def supervisor_node(state: AgentState) -> Dict[str, Any]:
     """Supervisor agent node for LangGraph workflow.
 
@@ -170,8 +194,15 @@ def supervisor_node(state: AgentState) -> Dict[str, Any]:
 
     user_request = state.get("user_request")
     parsed = parse_user_request(user_request)
+    task_type = parsed["task_type"]
 
-    updates: Dict[str, Any] = {"task_type": parsed["task_type"]}
+    # If heuristic hit generic fallback, try LLM classification if available
+    if task_type == DEFAULT_TASK_TYPE and user_request and len(user_request.strip()) > 8:
+        llm_type = classify_task_with_llm(user_request)
+        if llm_type:
+            task_type = llm_type
+
+    updates: Dict[str, Any] = {"task_type": task_type}
 
     if parsed["is_empty"] and not state.get("error"):
         updates["error"] = "Empty or missing user_request"

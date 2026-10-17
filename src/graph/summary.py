@@ -15,6 +15,7 @@ Responsible for:
 from typing import Any, Dict, List, Optional
 from src.graph.state import AgentState
 from src.agents.supervisor import TASK_TYPE_SCHEDULE
+from src.utils.llm import is_ollama_available, llm_generate_executive_summary
 
 
 def generate_final_summary(state: AgentState) -> Dict[str, Any]:
@@ -85,11 +86,23 @@ def generate_final_summary(state: AgentState) -> Dict[str, Any]:
         f"Done: {done_text}"
     )
 
+    executive_summary = None
+    if is_ollama_available():
+        action_type = proposed_action.get("action_type") or proposed_action.get("type", "task")
+        user_req = state.get("user_request") or ""
+        executive_summary = llm_generate_executive_summary(
+            user_request=user_req,
+            action_type=action_type,
+            action_summary=planned_text or "Task execution plan",
+            execution_status=exec_status or "completed",
+        )
+
     return {
         "researched": researched_text,
         "planned": planned_text,
         "done": done_text,
         "text": combined_text,
+        "executive_summary": executive_summary,
     }
 
 

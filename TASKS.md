@@ -46,3 +46,12 @@
 - [x] Implement interactive CLI runner (`main.py`) with demo and re-planning modes
 - [x] Run full test suite across all three task-type variants
 - [x] Update MEMORY.md with final project state
+
+## Phase 9: Local LLM Integration (Ollama llama3.2:3b)
+- [x] Detect downloaded Ollama models (`llama3.2:3b`)
+- [x] Build `src/utils/llm.py` integration client with automatic offline fallback
+- [x] Wire `llama3.2:3b` into Supervisor classification for complex requests
+- [x] Wire `llama3.2:3b` into Research Agent for dynamic search synthesis on unindexed topics
+- [x] Wire `llama3.2:3b` into Planning Agent for AI Executive Analysis note generation
+- [x] Wire `llama3.2:3b` into Final Summary for conversational executive summaries
+- [x] Verify complete test suite (76/76 passing in ~4s) and live CLI run
