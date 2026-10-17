@@ -28,10 +28,10 @@
 - [x] Add tests
 
 ## Phase 6: Human-in-the-Loop Approval
-- [ ] Implement `interrupt()` before any side-effecting tool call
-- [ ] Implement Approve/Reject handling
-- [ ] On reject, route back to Planning Agent
-- [ ] Add tests for approve and reject paths
+- [x] Implement `interrupt()` before any side-effecting tool call
+- [x] Implement Approve/Reject handling
+- [x] On reject, route back to Planning Agent
+- [x] Add tests for approve and reject paths
 
 ## Phase 7: Action Agent + Calendar/Notes MCP
 - [ ] Implement Calendar MCP (`list_events()`, `create_event()`)
