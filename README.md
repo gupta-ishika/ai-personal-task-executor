@@ -30,6 +30,7 @@ See the [docs/](docs/README.md) directory for full project specifications and ar
 - [`docs/SECURITY.md`](docs/SECURITY.md) — security requirements
 
 ### Active Workflow & Tracking (Root)
+- [`main.py`](main.py) — interactive CLI runner and demo execution entrypoint
 - [`RULES.md`](RULES.md) — development rules & boundaries
 - [`TASKS.md`](TASKS.md) — implementation task breakdown & phases
 - [`MEMORY.md`](MEMORY.md) — current project state & next steps

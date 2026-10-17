@@ -17,6 +17,7 @@ This directory contains the reference specifications, architecture definitions, 
 
 For active project progress, implementation tasks, and coding guidelines, refer to the files in the repository root:
 
+- [**main.py**](../main.py) — Interactive CLI runner with demo and custom task execution.
 - [**README.md**](../README.md) — Project overview and setup instructions.
 - [**MEMORY.md**](../MEMORY.md) — Current implementation status, completed tasks, and next steps.
 - [**TASKS.md**](../TASKS.md) — Phased task breakdown and completion tracking.

@@ -19,10 +19,10 @@ All 8 project phases completed successfully. The AI Personal Task Executor is fu
 - Phase 5: Planning Agent (Concrete action payload formulation across all 3 variants, re-planning alternative selection, state integration, and test suite)
 - Phase 6: Human-in-the-Loop Approval (Interrupt prompt with exact payload, decision parsing, approve/reject paths, re-planning cycle, and test suite)
 - Phase 7: Action Agent + Calendar/Notes MCP (Calendar and Notes MCP wrappers, Action Agent execution, approval gate verification, single retry, ask-user failure handling, and test suite)
-- Phase 8: Final Summary & Polish (3-part end-of-run summary [Researched/Planned/Done], edge case handling, full regression suite across all 3 variants, 76 passing tests)
+- Phase 8: Final Summary & Polish (3-part end-of-run summary [Researched/Planned/Done], edge case handling, full regression suite across all 3 variants, 76 passing tests, and interactive CLI runner `main.py` with demo modes)
 
 ## Current Task
-Completed. Project is ready for demonstration and usage.
+Completed. Project is ready for demonstration and usage via `python main.py` or automated test suite `pytest`.
 
 ## Known Issues
 None.

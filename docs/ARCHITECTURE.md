@@ -67,6 +67,7 @@ Create Calendar Event → 🚨 interrupt before this
 - `proposed_action`
 - `approval_status`
 - `execution_result`
+- `final_summary`
 - `error`
 
 ## Graph Flow
@@ -92,6 +93,7 @@ interrupt() → approval_status
 ## Folder Structure
 
 ```
+main.py                 # Interactive CLI runner
 src/
 ├── agents/
 │   ├── supervisor.py
@@ -104,7 +106,9 @@ src/
 │   └── notes_mcp.py
 ├── graph/
 │   ├── state.py
-│   └── graph.py
+│   ├── graph.py
+│   ├── approval.py
+│   └── summary.py
 ├── services/
 └── utils/
 ```

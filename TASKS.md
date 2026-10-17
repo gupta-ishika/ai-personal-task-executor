@@ -43,5 +43,6 @@
 ## Phase 8: Final Summary & Polish
 - [x] Implement end-of-run summary (researched / planned / done)
 - [x] Handle empty-research and other edge-case states from docs/DESIGN.md
+- [x] Implement interactive CLI runner (`main.py`) with demo and re-planning modes
 - [x] Run full test suite across all three task-type variants
 - [x] Update MEMORY.md with final project state
