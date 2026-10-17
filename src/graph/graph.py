@@ -6,12 +6,10 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.types import interrupt
 
 from src.graph.state import AgentState
+from src.agents.supervisor import supervisor_node
 
-
-def supervisor_placeholder(state: AgentState) -> Dict[str, Any]:
-    """Placeholder supervisor node for routing."""
-    task_type = state.get("task_type") or "research_and_action"
-    return {"task_type": task_type}
+# Keep alias for backward compatibility
+supervisor_placeholder = supervisor_node
 
 
 def research_placeholder(state: AgentState) -> Dict[str, Any]:
@@ -86,7 +84,7 @@ def create_task_graph(checkpointer: Optional[Any] = None):
     builder = StateGraph(AgentState)
 
     # Register nodes
-    builder.add_node("supervisor", supervisor_placeholder)
+    builder.add_node("supervisor", supervisor_node)
     builder.add_node("research_agent", research_placeholder)
     builder.add_node("planning_agent", planning_placeholder)
     builder.add_node("approval_node", approval_placeholder)

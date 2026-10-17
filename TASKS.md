@@ -12,9 +12,9 @@
 - [x] Wire up checkpointing so the graph can pause and resume
 
 ## Phase 3: Supervisor Agent
-- [ ] Implement request parsing and task-type classification
-- [ ] Route to Research → Planning → Action in sequence
-- [ ] Test routing for all three task-type variants
+- [x] Implement request parsing and task-type classification
+- [x] Route to Research → Planning → Action in sequence
+- [x] Test routing for all three task-type variants
 
 ## Phase 4: Research Agent + Search MCP
 - [ ] Implement Search MCP (`search()`, `fetch_page()`)
