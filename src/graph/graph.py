@@ -8,22 +8,12 @@ from langgraph.types import interrupt
 from src.graph.state import AgentState
 from src.agents.supervisor import supervisor_node
 from src.agents.research_agent import research_agent_node
+from src.agents.planning_agent import planning_agent_node
 
 # Keep aliases for backward compatibility
 supervisor_placeholder = supervisor_node
 research_placeholder = research_agent_node
-
-
-def planning_placeholder(state: AgentState) -> Dict[str, Any]:
-    """Placeholder planning agent node."""
-    return {
-        "proposed_action": {
-            "type": "create_event",
-            "title": "Proposed Event",
-            "time": "2026-10-01T18:00:00",
-        },
-        "approval_status": "pending",
-    }
+planning_placeholder = planning_agent_node
 
 
 def approval_placeholder(state: AgentState) -> Dict[str, Any]:
@@ -83,7 +73,7 @@ def create_task_graph(checkpointer: Optional[Any] = None):
     # Register nodes
     builder.add_node("supervisor", supervisor_node)
     builder.add_node("research_agent", research_agent_node)
-    builder.add_node("planning_agent", planning_placeholder)
+    builder.add_node("planning_agent", planning_agent_node)
     builder.add_node("approval_node", approval_placeholder)
     builder.add_node("action_agent", action_placeholder)
     builder.add_node("final_summary", final_summary_placeholder)

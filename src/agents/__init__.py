@@ -15,6 +15,11 @@ from src.agents.research_agent import (
     research_agent_node,
     extract_keywords,
 )
+from src.agents.planning_agent import (
+    PlanningAgent,
+    planning_agent_node,
+    extract_schedule_details,
+)
 
 __all__ = [
     "TASK_TYPE_SCHEDULE",
@@ -28,4 +33,7 @@ __all__ = [
     "ResearchAgent",
     "research_agent_node",
     "extract_keywords",
+    "PlanningAgent",
+    "planning_agent_node",
+    "extract_schedule_details",
 ]

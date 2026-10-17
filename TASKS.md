@@ -23,9 +23,9 @@
 - [x] Add tests
 
 ## Phase 5: Planning Agent
-- [ ] Convert research findings into a concrete proposed action payload
-- [ ] Handle all three task-type variants (schedule, save note, research→action)
-- [ ] Add tests
+- [x] Convert research findings into a concrete proposed action payload
+- [x] Handle all three task-type variants (schedule, save note, research→action)
+- [x] Add tests
 
 ## Phase 6: Human-in-the-Loop Approval
 - [ ] Implement `interrupt()` before any side-effecting tool call
