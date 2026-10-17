@@ -35,7 +35,7 @@ See the [docs/](docs/README.md) directory for full project specifications and ar
 - [`MEMORY.md`](MEMORY.md) — current project state & next steps
 
 ## Status
-Phase 3 (Supervisor Agent) completed; Phase 4 (Research Agent + Search MCP) in progress. See [`MEMORY.md`](MEMORY.md) for current status and next step.
+Phase 4 (Research Agent + Search MCP) completed; Phase 5 (Planning Agent) in progress. See [`MEMORY.md`](MEMORY.md) for current status and next step.
 
 ## Setup
 1. Copy `.env.example` to `.env.local` and fill in real values

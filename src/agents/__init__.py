@@ -10,6 +10,11 @@ from src.agents.supervisor import (
     parse_user_request,
     supervisor_node,
 )
+from src.agents.research_agent import (
+    ResearchAgent,
+    research_agent_node,
+    extract_keywords,
+)
 
 __all__ = [
     "TASK_TYPE_SCHEDULE",
@@ -20,4 +25,7 @@ __all__ = [
     "classify_task_type",
     "parse_user_request",
     "supervisor_node",
+    "ResearchAgent",
+    "research_agent_node",
+    "extract_keywords",
 ]

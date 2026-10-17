@@ -17,10 +17,10 @@
 - [x] Test routing for all three task-type variants
 
 ## Phase 4: Research Agent + Search MCP
-- [ ] Implement Search MCP (`search()`, `fetch_page()`)
-- [ ] Implement Research Agent's ReAct-style tool loop
-- [ ] Return structured findings into state
-- [ ] Add tests
+- [x] Implement Search MCP (`search()`, `fetch_page()`)
+- [x] Implement Research Agent's ReAct-style tool loop
+- [x] Return structured findings into state
+- [x] Add tests
 
 ## Phase 5: Planning Agent
 - [ ] Convert research findings into a concrete proposed action payload

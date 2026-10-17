@@ -1,7 +1,7 @@
 # Project Memory
 
 ## Current Status
-Phase 3 (Supervisor Agent) completed. Request parsing, task-type classification (schedule, research_and_save, research_and_action), graceful fallback for ambiguous/empty inputs, and LangGraph routing implemented and verified with 22 tests.
+Phase 4 (Research Agent + Search MCP) completed. Search MCP wrapper (`search()`, `fetch_page()`) implemented, Research Agent ReAct-style loop implemented with structured findings, integrated into StateGraph, and verified with 34 tests.
 
 ## Completed
 - docs/PRD.md
@@ -15,12 +15,13 @@ Phase 3 (Supervisor Agent) completed. Request parsing, task-type classification 
 - Phase 1: Setup (Project structure, virtual environment, dependencies, .gitignore, .env.local, test setup)
 - Phase 2: Shared State & Graph Skeleton (AgentState definition, LangGraph graph with MemorySaver checkpointer, approval interrupt, pause/resume test suite)
 - Phase 3: Supervisor Agent (Request parsing, classification into 3 MVP variants, fallback handling, LangGraph supervisor node, and routing test suite)
+- Phase 4: Research Agent + Search MCP (Search MCP client wrapper with search and fetch_page, Research Agent ReAct-style tool loop, structured findings, and test suite)
 
 ## Current Task
-Phase 4: Research Agent + Search MCP (see TASKS.md)
+Phase 5: Planning Agent (see TASKS.md)
 
 ## Known Issues
 None.
 
 ## Next Step
-Implement Phase 4: Research Agent + Search MCP (Implement Search MCP with `search()` and `fetch_page()`, ReAct-style tool loop, structured findings extraction, and tests).
+Implement Phase 5: Planning Agent (Convert research findings into concrete proposed action payload across all 3 task variants, handle empty/missing findings, and write test suite).
