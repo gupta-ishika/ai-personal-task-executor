@@ -34,11 +34,11 @@
 - [x] Add tests for approve and reject paths
 
 ## Phase 7: Action Agent + Calendar/Notes MCP
-- [ ] Implement Calendar MCP (`list_events()`, `create_event()`)
-- [ ] Implement Notes MCP (`save_note()`) if in scope
-- [ ] Implement Action Agent execution logic
-- [ ] Add failure handling (retry, then ask user)
-- [ ] Add tests, including simulated tool failure
+- [x] Implement Calendar MCP (`list_events()`, `create_event()`)
+- [x] Implement Notes MCP (`save_note()`) if in scope
+- [x] Implement Action Agent execution logic
+- [x] Add failure handling (retry, then ask user)
+- [x] Add tests, including simulated tool failure
 
 ## Phase 8: Final Summary & Polish
 - [ ] Implement end-of-run summary (researched / planned / done)

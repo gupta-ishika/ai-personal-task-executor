@@ -35,7 +35,7 @@ See the [docs/](docs/README.md) directory for full project specifications and ar
 - [`MEMORY.md`](MEMORY.md) — current project state & next steps
 
 ## Status
-Phase 6 (Human-in-the-Loop Approval) completed; Phase 7 (Action Agent + Calendar/Notes MCP) in progress. See [`MEMORY.md`](MEMORY.md) for current status and next step.
+Phase 7 (Action Agent + Calendar/Notes MCP) completed; Phase 8 (Final Summary & Polish) in progress. See [`MEMORY.md`](MEMORY.md) for current status and next step.
 
 ## Setup
 1. Copy `.env.example` to `.env.local` and fill in real values

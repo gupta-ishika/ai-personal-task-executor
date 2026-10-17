@@ -20,6 +20,10 @@ from src.agents.planning_agent import (
     planning_agent_node,
     extract_schedule_details,
 )
+from src.agents.action_agent import (
+    ActionAgent,
+    action_agent_node,
+)
 
 __all__ = [
     "TASK_TYPE_SCHEDULE",
@@ -36,4 +40,6 @@ __all__ = [
     "PlanningAgent",
     "planning_agent_node",
     "extract_schedule_details",
+    "ActionAgent",
+    "action_agent_node",
 ]
