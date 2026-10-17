@@ -111,6 +111,7 @@ src/
 │   └── summary.py
 ├── services/
 └── utils/
+    └── llm.py          # Local Ollama (llama3.2:3b) integration client
 ```
 
 ## Architectural Rules
@@ -118,3 +119,21 @@ src/
 - All side-effecting tool calls go through the Action Agent, and only after approval.
 - Business/agent logic stays out of the MCP tool wrappers; wrappers only handle the external call.
 - Graph state is the single source of truth passed between agents — agents don't hold their own hidden state.
+
+## Implementation Reality & Production Roadmap
+
+### Current Implementation State
+- **LLM Engine:** Local Ollama running `llama3.2:3b` via HTTP REST (`http://localhost:11434`), with automatic offline/sub-second fallback for deterministic `pytest` runs.
+- **Notes Storage:** 100% real local filesystem persistence (`./notes/*.md`).
+- **Calendar MCP:** Currently an in-memory client (`self._events`) with mock event IDs and URLs. Events do not persist after the CLI process terminates.
+- **Search MCP:** Uses a curated local index supplemented by dynamic Ollama research synthesis. Does not make live outbound web requests or parse live HTML.
+- **Session Memory:** Uses in-memory `MemorySaver()`. Conversations reset across process restarts.
+- **Tool Protocol:** Implemented as in-process Python wrapper classes adhering to the MCP interface convention, rather than separate stdio / Streamable HTTP subprocess servers.
+
+### Evolution Path to Full Production
+1. **Live Web Search & Scraping:** Integrate DuckDuckGo Search / Tavily API and live HTTP scraping with prompt injection guardrails (Phase 10).
+2. **Interactive REPL:** Support multi-turn conversational chat sessions in `main.py` with stable thread ID (Phase 11).
+3. **Calendar Persistence & iCal (.ics) Export:** Add `calendar.json` disk storage and `.ics` export for zero-friction calendar import (Phase 12).
+4. **Google Calendar API:** Implement OAuth 2.0 and Google Calendar v3 API client with approved-payload verification and idempotency (Phase 13).
+5. **Persistent Checkpointer:** Migrate from `MemorySaver` to `SqliteSaver` with no-duplicate-execution tests (Phase 14).
+6. **External MCP Servers:** Spawn true MCP server processes via `@modelcontextprotocol/sdk` over `stdio` / `Streamable HTTP` if full protocol compliance is desired (Phase 15 - Optional).

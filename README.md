@@ -32,11 +32,20 @@ See the [docs/](docs/README.md) directory for full project specifications and ar
 ### Active Workflow & Tracking (Root)
 - [`main.py`](main.py) — interactive CLI runner and demo execution entrypoint
 - [`RULES.md`](RULES.md) — development rules & boundaries
-- [`TASKS.md`](TASKS.md) — implementation task breakdown & phases
-- [`MEMORY.md`](MEMORY.md) — current project state & next steps
+- [`TASKS.md`](TASKS.md) — implementation task breakdown & phases (Phases 1-15)
+- [`MEMORY.md`](MEMORY.md) — current project state, component audit & next steps
 
-## Status
-All phases (1 through 8) completed. Fully implemented, human-in-the-loop verified, and passing 76 automated tests. See [`MEMORY.md`](MEMORY.md) for project status.
+## Status & Capabilities
+
+- **Phases 1–9 Complete:** Fully implemented, human-in-the-loop verified, powered by local Ollama (`llama3.2:3b`), and passing 76 automated tests.
+- **Real vs Simulated Boundaries:**
+  - 🟢 **Local LLM Inference:** **100% Real** (Runs locally via Ollama `llama3.2:3b` for dynamic reasoning and synthesis).
+  - 🟢 **Notes Persistence:** **100% Real** (Saves formatted `.md` Markdown files to `./notes/`).
+  - 🟢 **LangGraph Pipeline:** **100% Real** (State routing, ReAct loop, interrupt pause, human approval/rejection).
+  - 🟡 **Calendar MCP:** **In-Memory Simulation** (Stores events in Python RAM during process execution; disk persistence and `.ics` export scheduled for Phase 12).
+  - 🟡 **Search MCP:** **Synthesized Knowledge** (Curated local index + Ollama intelligence; live web scraping scheduled for Phase 10).
+  - 🟡 **Session Memory:** **In-Memory** (`MemorySaver()`; persistent SQLite checkpointer scheduled for Phase 14).
+
 
 ## Setup & Usage
 

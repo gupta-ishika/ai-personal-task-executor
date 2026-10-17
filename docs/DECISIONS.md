@@ -63,3 +63,27 @@ Use a keyword-scoped ReAct loop (reason → tool call → observe → repeat unt
 
 Reason:
 Demonstrates the ReAct pattern without building unnecessary complexity into an MVP.
+
+## ADR-009
+
+Decision:
+Integrate local Ollama (`llama3.2:3b`) for dynamic agent reasoning while preserving fast, deterministic rule-based fallbacks for unit test runs.
+
+Reason:
+Paid cloud API keys (OpenAI/Anthropic) introduce friction, costs, and external network dependencies. Leveraging local Ollama gives genuine generative reasoning (natural task classification, research synthesis, rich Markdown reports, and conversational summaries) completely free and private, while automatic detection of `PYTEST_CURRENT_TEST` ensures all automated tests run in seconds without flake or external requirements.
+
+## ADR-010
+
+Decision:
+Implement MCP clients as in-process Python wrappers initially rather than external daemon processes running over stdio / Streamable HTTP.
+
+Reason:
+Permits testing the core LangGraph multi-agent coordination, human approval gate, and side-effecting tool boundaries without the operational overhead of running multi-process IPC daemons during early development. External stdio / Streamable HTTP MCP server processes are staged for Phase 15.
+
+## ADR-011
+
+Decision:
+Persist notes to real disk storage immediately (`./notes/*.md`), while keeping calendar operations in-memory for the MVP baseline before adding file-based `.ics`/`calendar.json` persistence.
+
+Reason:
+Notes persist structured research output directly into the workspace where users can inspect markdown files immediately. Calendar event disk persistence and iCalendar `.ics` export are scheduled as a dedicated step (Phase 12) prior to full Google OAuth integration (Phase 13).

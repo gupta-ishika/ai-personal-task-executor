@@ -23,11 +23,34 @@ All 8 project phases completed successfully. The AI Personal Task Executor is fu
 - Phase 9: Local LLM Integration (Ollama llama3.2:3b support with `src/utils/llm.py`, dynamic request classification, search findings synthesis, rich Markdown note generation with AI Executive Analysis, dynamic final summaries, and deterministic offline fallback for pytest)
 
 ## Current Task
-Completed. Local LLM inference via Ollama (`llama3.2:3b`) is active and verified live.
+Completed Phase 9. Local LLM inference via Ollama (`llama3.2:3b`) is active and verified live.
 
-## Known Issues
-None.
+## Component Reality Audit (Live vs Simulated)
 
-## Next Step
-Optional future enhancements: additional Ollama model selections, streaming CLI tokens, external provider OAuth flows.
+| Component | Status | Reality Details |
+| :--- | :--- | :--- |
+| **Local LLM Engine** | **100% Real** | Executes local inference against Ollama (`llama3.2:3b`) via `src/utils/llm.py` for task classification, plan reasoning, research synthesis, and final summaries. Sub-second offline fallback for `pytest`. |
+| **Notes Storage** | **100% Real** | Persists real `.md` Markdown files to disk in `./notes/`. |
+| **LangGraph Pipeline** | **100% Real** | Full state transitions, ReAct looping, interrupt pauses, and human approval/rejection routing. |
+| **Calendar MCP** | **Simulated in RAM** | `src/mcp/calendar_mcp.py` stores events in an in-memory list (`self._events`) with dummy Google Calendar URLs. Does not yet persist to disk or sync with Google Calendar API. |
+| **Search MCP & Fetch** | **Simulated / Synthesized** | Uses local keyword index + Ollama `llama3.2:3b` synthesis. Does not make live outbound HTTP requests to Google/DuckDuckGo or fetch live external HTML. |
+| **Session Memory** | **In-Memory** | Uses `MemorySaver()`. Conversations reset when `main.py` terminates. |
+| **CLI Mode** | **Single-Shot** | Handles one request per execution. No continuous REPL chat loop yet. |
+
+## Identified Gaps & Remaining Work
+1. **Calendar Persistence:** Scheduled events disappear upon CLI exit. Needs `calendar.json` storage and `.ics` iCalendar file export.
+2. **Live Web Search & Scraping:** Needs real DuckDuckGo/Tavily search and live HTTP page fetching via `requests`/`beautifulsoup4`.
+3. **Google Calendar OAuth 2.0:** Needs `credentials.json` and `google-auth-oauthlib` to push events to real Google accounts.
+4. **Interactive REPL Chat:** Needs multi-turn conversational loop in `main.py`.
+5. **Persistent Checkpointer:** Needs `SqliteSaver` so threads persist across process restarts.
+6. **External MCP Protocol Servers:** Needs conversion from Python wrapper classes to true `stdio`/`Streamable HTTP` subprocess MCP servers.
+
+## Active Roadmap (Pragmatic Execution Order)
+- **Phase 10:** Live Web Search & Scraping (DuckDuckGo/Tavily, live `requests` + `bs4` fetch, honest "no results found" failure handling, prompt injection defense)
+- **Phase 11:** Interactive Continuous Chat Mode (REPL loop in `main.py` with stable session thread ID)
+- **Phase 12:** Persistent Calendar Storage (`calendar.json`) & iCal (`.ics`) Export (Immediate real output without OAuth friction)
+- **Phase 13:** Real Google Calendar API Integration (OAuth 2.0, approved payload verification, idempotency)
+- **Phase 14:** Persistent SQLite LangGraph Checkpointer (`SqliteSaver` with no-duplicate-execution tests)
+- **Phase 15:** True External MCP Server Subprocess Architecture (Optional)
+
 

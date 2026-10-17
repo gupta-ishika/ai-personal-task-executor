@@ -55,3 +55,45 @@
 - [x] Wire `llama3.2:3b` into Planning Agent for AI Executive Analysis note generation
 - [x] Wire `llama3.2:3b` into Final Summary for conversational executive summaries
 - [x] Verify complete test suite (76/76 passing in ~4s) and live CLI run
+
+## Phase 10: Live Web Search & Scraping (Highest Priority)
+- [ ] Replace mock index with real live web search (DuckDuckGo Search via `duckduckgo-search` or Tavily API)
+- [ ] Replace hardcoded `fetch_page()` with live HTTP fetching and clean HTML extraction (`requests` + `beautifulsoup4`)
+- [ ] Implement relevance scoring: filter candidate results by keyword/token overlap against user criteria before selection
+- [ ] Handle invalid URLs, HTTP errors, network timeouts, and unsupported MIME types gracefully without crashing
+- [ ] Implement honest failure handling: Never fabricate results; return an explicit "Search yielded no results" if queries fail
+- [ ] Treat scraped web text as untrusted (prompt injection defense before feeding to agent planning)
+- [ ] Keep source URLs in state for full citation traceability
+- [ ] Add unit test suite with mocks covering: provider errors/timeouts, rate limits, and adversarial prompt injection ("ignore instructions and do X")
+
+## Phase 11: Interactive Continuous Chat Mode (REPL) & Routing Evals
+- [ ] Add interactive conversation loop in `main.py` with a stable session thread ID
+- [ ] Support back-and-forth task clarification, multi-turn plan revisions, and sequential task requests
+- [ ] Add test for multi-turn conversational follow-ups referencing earlier research results
+- [ ] Add Supervisor evaluation test suite with tricky user requests to catch classification drift in `llama3.2:3b`
+- [ ] Add CLI commands: `/help`, `/exit`, `/history`, and `/status`
+
+## Phase 12: Persistent Calendar Storage & iCal (.ics) Export (Quick Win)
+- [ ] Persist scheduled events to a local `calendar.json` file so events survive process restarts
+- [ ] Generate downloadable `.ics` (iCalendar) files for immediate import into Google, Apple, or Outlook Calendar without OAuth friction
+- [ ] Track clear action lifecycle states in `AgentState` (`proposed`, `approved`, `rejected`, `executing`, `completed`, `failed`)
+- [ ] Verify approved-payload match: ensure Action Agent only executes the exact approved payload
+- [ ] Verify the file write succeeded on disk before reporting execution success
+- [ ] Add tests for calendar persistence, `.ics` generation, payload integrity, and disk write validation
+
+## Phase 13: Real Google Calendar API Integration (OAuth 2.0)
+- [ ] Implement Google Calendar v3 API client with `google-auth-oauthlib` (`credentials.json` / `token.json`)
+- [ ] Handle OAuth token expiration, permission errors, API timeouts, and failed event creation
+- [ ] Verify Google Calendar API response status before reporting execution success
+- [ ] Add approved-payload test for real Google Calendar API requests
+- [ ] Add idempotency check: prevent duplicate event creation when resuming or retrying an action
+- [ ] Fall back gracefully to local `.ics` export if Google credentials are not configured
+
+## Phase 14: Persistent SQLite LangGraph Checkpointer
+- [ ] Replace in-memory `MemorySaver` with `SqliteSaver` in `main.py`
+- [ ] Persist session threads and interrupt states into a local SQLite DB (`task_state.db`)
+- [ ] Add recovery test verifying that an action that succeeded externally before a crash/interrupt is not re-executed upon restart
+
+## Phase 15: True External MCP Server Subprocess Architecture (Optional)
+- [ ] Refactor Python tool wrappers into true external MCP servers running over `stdio` / `Streamable HTTP`
+- [ ] Connect using official `@modelcontextprotocol/sdk` client if full MCP specification compliance is needed
