@@ -74,12 +74,12 @@
 - [x] Add CLI commands: `/help`, `/exit`, `/history`, and `/status`
 
 ## Phase 12: Persistent Calendar Storage & iCal (.ics) Export (Quick Win)
-- [ ] Persist scheduled events to a local `calendar.json` file so events survive process restarts
-- [ ] Generate downloadable `.ics` (iCalendar) files for immediate import into Google, Apple, or Outlook Calendar without OAuth friction
-- [ ] Track clear action lifecycle states in `AgentState` (`proposed`, `approved`, `rejected`, `executing`, `completed`, `failed`)
-- [ ] Verify approved-payload match: ensure Action Agent only executes the exact approved payload
-- [ ] Verify the file write succeeded on disk before reporting execution success
-- [ ] Add tests for calendar persistence, `.ics` generation, payload integrity, and disk write validation
+- [x] Persist scheduled events to a local `calendar.json` file so events survive process restarts
+- [x] Generate downloadable `.ics` (iCalendar) files for immediate import into Google, Apple, or Outlook Calendar without OAuth friction
+- [x] Track clear action lifecycle states in `AgentState` (`proposed`, `approved`, `rejected`, `executing`, `completed`, `failed`)
+- [x] Verify approved-payload match: ensure Action Agent only executes the exact approved payload
+- [x] Verify the file write succeeded on disk before reporting execution success
+- [x] Add tests for calendar persistence, `.ics` generation, payload integrity, and disk write validation
 
 ## Phase 13: Real Google Calendar API Integration (OAuth 2.0)
 - [ ] Implement Google Calendar v3 API client with `google-auth-oauthlib` (`credentials.json` / `token.json`)

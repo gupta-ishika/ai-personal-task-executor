@@ -12,7 +12,7 @@ Responsible for:
 
 import re
 from typing import Any, Dict, List, Optional
-from src.graph.state import AgentState
+from src.graph.state import AgentState, LIFECYCLE_PROPOSED
 from src.agents.supervisor import (
     TASK_TYPE_SCHEDULE,
     TASK_TYPE_RESEARCH_AND_SAVE,
@@ -158,6 +158,7 @@ class PlanningAgent:
         return {
             "proposed_action": action_payload,
             "approval_status": "pending",
+            "action_lifecycle": LIFECYCLE_PROPOSED,
             "user_feedback": None,
         }
 

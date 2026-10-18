@@ -30,4 +30,8 @@ Thumbs.db
 
 # Generated notes storage
 notes/
-test_*_notes/
+test_scratch*/
+
+# Local calendar data & exports
+data/
+*.ics

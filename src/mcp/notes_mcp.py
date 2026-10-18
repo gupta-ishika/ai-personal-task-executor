@@ -52,6 +52,10 @@ class NotesMCP:
         with open(full_path, "w", encoding="utf-8") as f:
             f.write(content)
 
+        # Verify disk write physically succeeded
+        if not os.path.exists(full_path) or os.path.getsize(full_path) < len(content.encode("utf-8")):
+            raise IOError(f"Disk write verification failed for note: {full_path}")
+
         return {
             "status": "success",
             "title": title or "Note",

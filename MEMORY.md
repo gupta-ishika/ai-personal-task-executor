@@ -23,9 +23,10 @@ All 8 project phases completed successfully. The AI Personal Task Executor is fu
 - Phase 9: Local LLM Integration (Ollama llama3.2:3b support with `src/utils/llm.py`, dynamic request classification, search findings synthesis, rich Markdown note generation with AI Executive Analysis, dynamic final summaries, and deterministic offline fallback for pytest)
 - Phase 10: Live Web Search & Scraping (Real DuckDuckGo search via `ddgs`, live HTTP page fetching & scraping with `requests` + `BeautifulSoup`, keyword relevance scoring, prompt injection defense, honest failure handling, and 10 new unit tests)
 - Phase 11: Interactive Continuous Chat Mode (REPL) & Routing Evals (Continuous chat REPL in `main.py` with stable session thread ID, slash commands `/help`, `/exit`, `/history`, `/status`, `/clear`, multi-turn conversational follow-ups referencing earlier research, plan revisions with user feedback, supervisor tricky-query eval suite, 114 passing tests)
+- Phase 12: Persistent Calendar Storage & iCal (.ics) Export (Local `calendar.json` event persistence surviving process restarts, standard RFC 5545 `.ics` file generation for universal calendar import without OAuth, action lifecycle state tracking `[proposed, approved, rejected, executing, completed, failed]`, approved-payload match verification, disk write validation, 120 passing tests)
 
 ## Current Task
-Completed Phase 11. Interactive Continuous Chat Mode (REPL) and Supervisor Routing Evals implemented and verified with 114 passing tests. Ready for Phase 12 (Persistent Calendar Storage & iCal `.ics` Export).
+Completed Phase 12. Persistent Calendar Storage & iCal (`.ics`) Export is implemented and verified with 120 passing tests. Next is Phase 13 (Real Google Calendar API Integration with OAuth 2.0).
 
 ## Component Reality Audit (Live vs Simulated)
 
@@ -34,21 +35,20 @@ Completed Phase 11. Interactive Continuous Chat Mode (REPL) and Supervisor Routi
 | **Local LLM Engine** | **100% Real** | Executes local inference against Ollama (`llama3.2:3b`) via `src/utils/llm.py` for task classification, plan reasoning, research synthesis, and final summaries. Sub-second offline fallback for `pytest`. |
 | **Live Web Search & Scraping** | **100% Real** | Executes real web search via DuckDuckGo (`ddgs`), live HTTP page fetching via `requests`, and clean text extraction with `BeautifulSoup`. Protected with prompt injection sanitization. |
 | **CLI Mode (REPL)** | **100% Real** | Continuous multi-turn chat REPL loop in `main.py` with stable session thread ID, slash commands (`/help`, `/status`, `/history`, `/clear`, `/exit`), back-and-forth approval revisions, and follow-ups referencing earlier research. |
-| **Notes Storage** | **100% Real** | Persists real `.md` Markdown files to disk in `./notes/`. |
-| **LangGraph Pipeline** | **100% Real** | Full state transitions, ReAct looping, interrupt pauses, and human approval/rejection routing. |
-| **Calendar MCP** | **Simulated in RAM** | `src/mcp/calendar_mcp.py` stores events in an in-memory list (`self._events`) with dummy Google Calendar URLs. Does not yet persist to disk or sync with Google Calendar API (scheduled for Phase 12 & 13). |
+| **Notes Storage** | **100% Real** | Persists real `.md` Markdown files to disk in `./notes/` with physical disk write verification. |
+| **Calendar Storage & iCal Export** | **100% Real (Local Disk & .ics)** | Persists events to `./data/calendar.json` surviving process restarts and generates standard RFC 5545 `.ics` iCalendar files to `./data/events/<id>.ics` with physical disk write verification. Importable into Google, Apple, or Outlook Calendar. |
+| **LangGraph Pipeline** | **100% Real** | Full state transitions, ReAct looping, interrupt pauses, action lifecycle states, and human approval/rejection routing. |
 | **Session Memory** | **In-Memory** | Uses `MemorySaver()`. Conversations reset when `main.py` terminates (scheduled for Phase 14). |
 
 ## Identified Gaps & Remaining Work
-1. **Calendar Persistence:** Scheduled events disappear upon CLI exit. Needs `calendar.json` storage and `.ics` iCalendar file export (Phase 12).
-2. **Google Calendar OAuth 2.0:** Needs `credentials.json` and `google-auth-oauthlib` to push events to real Google accounts (Phase 13).
-3. **Persistent Checkpointer:** Needs `SqliteSaver` so threads persist across process restarts (Phase 14).
-4. **External MCP Protocol Servers:** Needs conversion from Python wrapper classes to true `stdio`/`Streamable HTTP` subprocess MCP servers (Phase 15).
+1. **Google Calendar OAuth 2.0:** Needs `credentials.json` and `google-auth-oauthlib` to push events directly to Google accounts via API (Phase 13).
+2. **Persistent Checkpointer:** Needs `SqliteSaver` so threads persist across process restarts (Phase 14).
+3. **External MCP Protocol Servers:** Needs conversion from Python wrapper classes to true `stdio`/`Streamable HTTP` subprocess MCP servers (Phase 15).
 
 ## Active Roadmap (Pragmatic Execution Order)
 - [x] **Phase 10:** Live Web Search & Scraping (DuckDuckGo, live `requests` + `bs4` fetch, honest "no results found" failure handling, prompt injection defense)
 - [x] **Phase 11:** Interactive Continuous Chat Mode (REPL loop in `main.py` with stable session thread ID, multi-turn follow-ups, routing evals)
-- [ ] **Phase 12:** Persistent Calendar Storage (`calendar.json`) & iCal (`.ics`) Export (Immediate real output without OAuth friction)
+- [x] **Phase 12:** Persistent Calendar Storage (`calendar.json`) & iCal (`.ics`) Export (Immediate real output without OAuth friction)
 - [ ] **Phase 13:** Real Google Calendar API Integration (OAuth 2.0, approved payload verification, idempotency)
 - [ ] **Phase 14:** Persistent SQLite LangGraph Checkpointer (`SqliteSaver` with no-duplicate-execution tests)
 - [ ] **Phase 15:** True External MCP Server Subprocess Architecture (Optional)

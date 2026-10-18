@@ -7,9 +7,14 @@ Responsible for:
 4. Routing approved actions to Action Agent and rejected proposals back to Planning Agent.
 """
 
+import copy
 from typing import Any, Dict, Literal, Optional
 from langgraph.types import interrupt
-from src.graph.state import AgentState
+from src.graph.state import (
+    AgentState,
+    LIFECYCLE_APPROVED,
+    LIFECYCLE_REJECTED,
+)
 
 APPROVAL_STATUS_PENDING = "pending"
 APPROVAL_STATUS_APPROVED = "approved"
@@ -97,7 +102,17 @@ def approval_node(state: AgentState) -> Dict[str, Any]:
         status = parse_approval_decision(decision)
         feedback = decision.get("feedback") if isinstance(decision, dict) else None
 
-        updates: Dict[str, Any] = {"approval_status": status}
+        lifecycle = LIFECYCLE_APPROVED if status == APPROVAL_STATUS_APPROVED else LIFECYCLE_REJECTED
+        updates: Dict[str, Any] = {
+            "approval_status": status,
+            "action_lifecycle": lifecycle,
+        }
+
+        if status == APPROVAL_STATUS_APPROVED and proposed_action:
+            updates["approved_action_payload"] = copy.deepcopy(proposed_action)
+        elif status == APPROVAL_STATUS_REJECTED:
+            updates["approved_action_payload"] = None
+
         if feedback:
             updates["user_feedback"] = feedback
         return updates

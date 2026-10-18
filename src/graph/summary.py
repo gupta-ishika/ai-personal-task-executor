@@ -64,7 +64,13 @@ def generate_final_summary(state: AgentState) -> Dict[str, Any]:
             event = res_payload.get("event", {})
             event_title = event.get("title", "Event")
             event_link = event.get("event_link", "")
-            done_text = f"Created calendar event '{event_title}'" + (f" ({event_link})." if event_link else ".")
+            ics_path = res_payload.get("ics_path") or event.get("ics_path")
+            done_text = f"Created calendar event '{event_title}'"
+            if ics_path:
+                done_text += f" (iCal exported to '{ics_path}')"
+            elif event_link:
+                done_text += f" ({event_link})"
+            done_text += "."
         elif "note" in action_type:
             filename = res_payload.get("filename", "note.md")
             done_text = f"Saved research findings to note file '{filename}'."

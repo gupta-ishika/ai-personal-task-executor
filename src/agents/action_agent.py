@@ -9,8 +9,15 @@ Responsible for:
 4. Action Agent node for LangGraph orchestration.
 """
 
+import os
 from typing import Any, Dict, Optional
-from src.graph.state import AgentState
+from src.graph.state import (
+    AgentState,
+    LIFECYCLE_EXECUTING,
+    LIFECYCLE_COMPLETED,
+    LIFECYCLE_FAILED,
+    LIFECYCLE_REJECTED,
+)
 from src.mcp.calendar_mcp import create_event, CalendarMCP
 from src.mcp.notes_mcp import save_note, NotesMCP
 
@@ -37,7 +44,7 @@ class ActionAgent:
             state: Current AgentState.
 
         Returns:
-            Dictionary with 'execution_result' and optional 'error'.
+            Dictionary with 'execution_result', 'action_lifecycle', and optional 'error'.
 
         Raises:
             PermissionError: If approval_status is not 'approved'.
@@ -49,10 +56,29 @@ class ActionAgent:
                     "status": "blocked",
                     "error": "Action execution blocked: Human approval required.",
                 },
+                "action_lifecycle": LIFECYCLE_REJECTED,
                 "error": "Human approval required before executing external action.",
             }
 
         proposed_action = state.get("proposed_action") or {}
+        approved_payload = state.get("approved_action_payload")
+
+        # Verify approved-payload match: ensure Action Agent only executes the exact approved payload
+        if approved_payload is not None:
+            appr_type = approved_payload.get("action_type") or approved_payload.get("type")
+            prop_type = proposed_action.get("action_type") or proposed_action.get("type")
+            if appr_type != prop_type or approved_payload.get("details") != proposed_action.get("details"):
+                error_msg = "Approved payload mismatch: Action payload was modified after receiving approval."
+                return {
+                    "execution_result": {
+                        "status": "failed",
+                        "error": error_msg,
+                        "action": proposed_action,
+                    },
+                    "action_lifecycle": LIFECYCLE_FAILED,
+                    "error": error_msg,
+                }
+
         action_type = proposed_action.get("action_type") or proposed_action.get("type", "")
         details = proposed_action.get("details", {})
 
@@ -73,8 +99,17 @@ class ActionAgent:
                             "error": f"Unsupported or unknown action type: '{action_type}'",
                             "action": proposed_action,
                         },
+                        "action_lifecycle": LIFECYCLE_FAILED,
                         "error": f"Unsupported action type '{action_type}'",
                     }
+
+                # Verify file writes physically succeeded on disk before confirming success
+                if "ics_path" in result and not os.path.exists(result["ics_path"]):
+                    raise IOError(f"Calendar .ics export file does not exist on disk: {result['ics_path']}")
+                if "storage_path" in result and not os.path.exists(result["storage_path"]):
+                    raise IOError(f"Calendar JSON storage file does not exist on disk: {result['storage_path']}")
+                if "path" in result and not os.path.exists(result["path"]):
+                    raise IOError(f"Note file does not exist on disk: {result['path']}")
 
                 # Success
                 return {
@@ -83,7 +118,8 @@ class ActionAgent:
                         "retries_used": retries_used,
                         "action": proposed_action,
                         "result": result,
-                    }
+                    },
+                    "action_lifecycle": LIFECYCLE_COMPLETED,
                 }
 
             except Exception as exc:
@@ -103,6 +139,7 @@ class ActionAgent:
                 "action": proposed_action,
                 "message": f"Tool execution failed after {retries_used} retry: {error_msg}. Awaiting user guidance.",
             },
+            "action_lifecycle": LIFECYCLE_FAILED,
             "error": error_msg,
         }
 
