@@ -36,7 +36,10 @@ def generate_final_summary(state: AgentState) -> Dict[str, Any]:
 
     # 1. Researched
     if task_type == TASK_TYPE_SCHEDULE:
-        researched_text = "Direct scheduling; no prior research required."
+        if research_results and "earlier research" in (proposed_action.get("summary") or "").lower():
+            researched_text = f"Referenced earlier session research ({len(research_results)} findings available)."
+        else:
+            researched_text = "Direct scheduling; no prior research required."
     elif research_results:
         titles = [r.get("title", "Finding") for r in research_results[:3]]
         researched_text = f"Discovered {len(research_results)} options: {', '.join(titles)}."
@@ -109,4 +112,14 @@ def generate_final_summary(state: AgentState) -> Dict[str, Any]:
 def final_summary_node(state: AgentState) -> Dict[str, Any]:
     """Final summary node for LangGraph workflow."""
     summary = generate_final_summary(state)
-    return {"final_summary": summary}
+    history = list(state.get("conversation_history") or [])
+    user_req = state.get("user_request") or ""
+    history.append({
+        "user_request": user_req,
+        "task_type": state.get("task_type"),
+        "proposed_action": state.get("proposed_action"),
+        "approval_status": state.get("approval_status"),
+        "execution_result": state.get("execution_result"),
+        "summary": summary.get("text"),
+    })
+    return {"final_summary": summary, "conversation_history": history}

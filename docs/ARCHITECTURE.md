@@ -68,6 +68,8 @@ Create Calendar Event → 🚨 interrupt before this
 - `approval_status`
 - `execution_result`
 - `final_summary`
+- `user_feedback`
+- `conversation_history`
 - `error`
 
 ## Graph Flow

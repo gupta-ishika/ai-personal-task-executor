@@ -95,6 +95,12 @@ def approval_node(state: AgentState) -> Dict[str, Any]:
 
         decision = interrupt(prompt_payload)
         status = parse_approval_decision(decision)
+        feedback = decision.get("feedback") if isinstance(decision, dict) else None
+
+        updates: Dict[str, Any] = {"approval_status": status}
+        if feedback:
+            updates["user_feedback"] = feedback
+        return updates
 
     return {"approval_status": status}
 

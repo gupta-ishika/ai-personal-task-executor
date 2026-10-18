@@ -88,6 +88,32 @@ CALENDAR_ACTION_PATTERNS = [
 ]
 
 
+# Schedule idioms where "find" refers to finding open slots/calendar time rather than web research
+FIND_TIME_PATTERNS = [
+    r"\bfind\s+(?:me\s+)?(?:a\s+)?(?:free\s+)?(?:\d+[-\s]*(?:min|minute|hour)\s+)?(?:slot|time|opening|window)\b",
+    r"\bfind\s+time\s+to\b",
+]
+
+# Negative action constraints where calendar scheduling is explicitly negated/forbidden
+NEGATIVE_CALENDAR_PATTERNS = [
+    r"\b(?:don'?t|do\s+not|never|without)\s+(?:schedule|book|put|add)\b",
+    r"\b(?:no\s+need\s+to\s+schedule|not\s+on\s+(?:my\s+)?calendar)\b",
+]
+
+# Calendar as a research subject/topic rather than an action destination
+CALENDAR_AS_TOPIC_PATTERNS = [
+    r"\b(?:history|origin|evolution|concept|about)\s+(?:of\s+)?(?:the\s+)?(?:\w+\s+)?calendar\b",
+    r"\bcalendar\s+(?:app|software|system|history|features?|types?)\b",
+]
+
+# References to earlier research findings in multi-turn conversations
+EARLIER_RESEARCH_REF_PATTERNS = [
+    r"\b(?:first|second|third|1st|2nd|3rd)\s+(?:one|option|venue|cafe|choice|recommendation)\b",
+    r"\b(?:from\s+)?earlier\s+research\b",
+    r"\bprevious\s+option\b",
+]
+
+
 def classify_task_type(user_request: Optional[str]) -> str:
     """Classify the user request into one of the three task-type variants.
 
@@ -105,10 +131,33 @@ def classify_task_type(user_request: Optional[str]) -> str:
     if not req:
         return DEFAULT_TASK_TYPE
 
+    has_find_time = any(re.search(pat, req) for pat in FIND_TIME_PATTERNS)
+    has_negative_calendar = any(re.search(pat, req) for pat in NEGATIVE_CALENDAR_PATTERNS)
+    is_calendar_topic = any(re.search(pat, req) for pat in CALENDAR_AS_TOPIC_PATTERNS)
+    is_earlier_ref = any(re.search(pat, req) for pat in EARLIER_RESEARCH_REF_PATTERNS)
+
     has_research = any(re.search(pat, req) for pat in RESEARCH_PATTERNS)
     has_action = any(re.search(pat, req) for pat in ACTION_PATTERNS)
     has_calendar_action = any(re.search(pat, req) for pat in CALENDAR_ACTION_PATTERNS)
     has_save = any(re.search(pat, req) for pat in SAVE_PATTERNS)
+
+    # Disambiguate tricky edge cases
+    if has_find_time:
+        has_research = False
+        has_action = True
+        has_calendar_action = True
+
+    if has_negative_calendar:
+        has_action = False
+        has_calendar_action = False
+
+    if is_calendar_topic and not any(re.search(pat, req) for pat in DATETIME_PATTERNS):
+        has_action = False
+        has_calendar_action = False
+
+    if is_earlier_ref and has_action:
+        # Refers to earlier findings without asking to perform a new search
+        has_research = False
 
     # 1. Research + Action (e.g., "Find a cafe ... and schedule it on my calendar")
     if has_research and has_action:
@@ -165,12 +214,16 @@ def classify_task_with_llm(user_request: str) -> Optional[str]:
     if not is_ollama_available():
         return None
     prompt = (
-        "Classify the following user request into one of these exact three task types:\n"
-        "- 'schedule': Direct calendar event scheduling without needing prior research\n"
-        "- 'research_and_save': Researching information and saving as notes/file\n"
-        "- 'research_and_action': Researching options first and then scheduling on calendar\n\n"
-        f"Request: \"{user_request}\"\n"
-        "Return ONLY the task type name."
+        "You are an intent classifier for a personal assistant. "
+        "Classify the following user request into exactly ONE of these three task types:\n\n"
+        "- 'schedule': Direct calendar event or meeting scheduling without needing web research.\n"
+        "  (Includes finding a time slot, booking a meeting, adding an event, or scheduling a venue from earlier conversation)\n\n"
+        "- 'research_and_save': Researching information, comparing options, or looking up topics, and saving or presenting notes.\n"
+        "  (Includes researching history of calendars, comparing products, or when the user says not to schedule anything)\n\n"
+        "- 'research_and_action': First performing external web research to find options, AND THEN scheduling a selected option on the calendar.\n"
+        "  (Example: 'Find 3 Italian restaurants and book a table for Saturday 8 PM')\n\n"
+        f"Request: \"{user_request}\"\n\n"
+        "Respond with ONLY the exact task type string: 'schedule', 'research_and_save', or 'research_and_action'."
     )
     ans = query_ollama(prompt=prompt, timeout=10.0)
     if ans:

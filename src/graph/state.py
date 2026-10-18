@@ -25,3 +25,5 @@ class AgentState(TypedDict, total=False):
     execution_result: Optional[Dict[str, Any]]
     final_summary: Optional[Dict[str, Any]]
     error: Optional[str]
+    user_feedback: Optional[str]
+    conversation_history: Optional[List[Dict[str, Any]]]

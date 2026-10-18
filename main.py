@@ -1,13 +1,13 @@
 """Main CLI entrypoint for AI Personal Task Executor.
 
-Provides an interactive and command-line interface to research, plan,
-pause for human approval, and execute personal productivity tasks.
+Provides an interactive REPL chat mode and command-line interface to research,
+plan, pause for human approval, and execute personal productivity tasks.
 """
 
 import sys
 import uuid
 import argparse
-from typing import Optional
+from typing import Any, Dict, Optional
 
 # Ensure UTF-8 output encoding across Windows consoles
 if hasattr(sys.stdout, "reconfigure"):
@@ -22,29 +22,117 @@ from src.graph.graph import create_task_graph
 from src.utils.llm import is_ollama_available, DEFAULT_OLLAMA_MODEL
 
 
-def run_task(user_request: str, auto_decision: Optional[str] = None):
-    """Run a single personal productivity task through the LangGraph pipeline.
+def print_help():
+    """Display interactive CLI commands and usage guidance."""
+    print("\n" + "=" * 65)
+    print("  AI PERSONAL TASK EXECUTOR — REPL COMMANDS & USAGE")
+    print("=" * 65)
+    print("Commands:")
+    print("  /help     : Display this help message")
+    print("  /status   : View active session ID, checkpointer, and memory state")
+    print("  /history  : View conversation history & executed actions in this session")
+    print("  /clear    : Reset conversation state and start a fresh session")
+    print("  /exit     : Cleanly exit the chat session (also /quit)")
+    print("\nWorkflow Examples:")
+    print("  1. Research & Save Note:")
+    print("     \"Find 3 good cafes in Indiranagar and save the options\"")
+    print("  2. Conversational Follow-up (Multi-turn):")
+    print("     \"Now schedule a meeting at the first one this Saturday at 5 PM\"")
+    print("  3. Direct Scheduling:")
+    print("     \"Schedule a team sync with Priya tomorrow at 11 AM\"")
+    print("  4. Compound Research & Scheduling:")
+    print("     \"Find Italian restaurants near MG Road and book a table for 8 PM\"")
+    print("  5. Plan Revisions at Approval Gate:")
+    print("     Type 'm: change time to 6:30 PM' or 'reject' to explore alternative options.")
+    print("=" * 65 + "\n")
 
-    Args:
-        user_request: The user task string.
-        auto_decision: Optional automated approval decision ('approve' or 'reject')
-                       for non-interactive / automated demo runs.
+
+def print_status(graph, config: Dict[str, Any]):
+    """Display current session state and diagnostic information."""
+    thread_id = config.get("configurable", {}).get("thread_id", "unknown")
+    state = graph.get_state(config)
+    values = state.values if state else {}
+
+    ollama_online = is_ollama_available()
+    llm_info = f"Ollama ({DEFAULT_OLLAMA_MODEL}) [ONLINE]" if ollama_online else "Deterministic / Heuristics [OFFLINE]"
+
+    research_results = values.get("research_results") or []
+    history = values.get("conversation_history") or []
+    last_action = values.get("proposed_action") or {}
+
+    print("\n" + "=" * 65)
+    print("  ACTIVE SESSION STATUS")
+    print("=" * 65)
+    print(f"Session Thread ID   : {thread_id}")
+    print(f"Checkpointer        : Active (MemorySaver)")
+    print(f"LLM Engine          : {llm_info}")
+    print(f"Total Turns Run     : {len(history)}")
+    print(f"Cached Findings     : {len(research_results)} item(s) in session memory")
+    if research_results:
+        for idx, item in enumerate(research_results, 1):
+            print(f"  [{idx}] {item.get('title')} ({item.get('url', 'no url')})")
+    if last_action:
+        print(f"Last Action Summary : {last_action.get('summary', 'None')} (Rev #{last_action.get('revision', 1)})")
+        print(f"Approval Status     : {values.get('approval_status', 'None')}")
+    print("=" * 65 + "\n")
+
+
+def print_history(graph, config: Dict[str, Any]):
+    """Display the chronological conversation history and action records."""
+    state = graph.get_state(config)
+    values = state.values if state else {}
+    history = values.get("conversation_history") or []
+
+    print("\n" + "=" * 65)
+    print(f"  SESSION CONVERSATION HISTORY ({len(history)} turn{'s' if len(history) != 1 else ''})")
+    print("=" * 65)
+
+    if not history:
+        print("  No conversation turns completed yet in this session.")
+    else:
+        for idx, turn in enumerate(history, 1):
+            user_req = turn.get("user_request", "")
+            task_type = turn.get("task_type", "")
+            proposed = turn.get("proposed_action") or {}
+            exec_res = turn.get("execution_result") or {}
+            status = exec_res.get("status") or turn.get("approval_status") or "completed"
+
+            print(f"\n[Turn #{idx}]")
+            print(f"  Request  : \"{user_req}\"")
+            print(f"  Type     : {task_type}")
+            print(f"  Action   : {proposed.get('summary', 'N/A')}")
+            print(f"  Status   : {status.upper()}")
+
+    print("=" * 65 + "\n")
+
+
+def execute_turn(graph, config: Dict[str, Any], user_request: str, auto_decision: Optional[str] = None):
+    """Execute a single conversational turn in the LangGraph workflow.
+
+    Maintains accumulated research findings across turns while refreshing
+    per-turn ephemeral flags.
     """
     ollama_online = is_ollama_available()
     llm_info = f"Ollama ({DEFAULT_OLLAMA_MODEL})" if ollama_online else "Deterministic / Heuristics"
 
-    print("\n" + "=" * 65)
-    print("  AI PERSONAL TASK EXECUTOR")
-    print(f"  [LLM Engine]: {llm_info}")
-    print("=" * 65)
-    print(f"\n[Incoming Request]: \"{user_request}\"")
+    print("\n" + "-" * 65)
+    print(f"[Turn Request]: \"{user_request}\"")
+    print(f"[LLM Engine]  : {llm_info}")
+    print("-" * 65)
 
-    thread_id = f"session-{uuid.uuid4().hex[:6]}"
-    config = {"configurable": {"thread_id": thread_id}}
-    graph = create_task_graph(checkpointer=MemorySaver())
+    # Initialize / refresh turn state while preserving research_results
+    turn_input: Dict[str, Any] = {
+        "user_request": user_request,
+        "task_type": None,
+        "approval_status": "pending",
+        "proposed_action": None,
+        "execution_result": None,
+        "final_summary": None,
+        "error": None,
+    }
 
-    print("\n>>> Running Supervisor and Research...")
-    graph.invoke({"user_request": user_request}, config=config)
+    print("\n>>> Routing request & executing agents...")
+    graph.invoke(turn_input, config=config)
 
     # Loop to handle approval gate and potential re-planning cycles
     while True:
@@ -71,6 +159,7 @@ def run_task(user_request: str, auto_decision: Optional[str] = None):
             print("-" * 65)
 
             # Determine decision
+            feedback = None
             if auto_decision == "reject_once":
                 decision = "rejected"
                 auto_decision = "approved"
@@ -80,11 +169,23 @@ def run_task(user_request: str, auto_decision: Optional[str] = None):
                 print(f"[Automated Decision]: {decision.upper()}")
             else:
                 try:
-                    user_choice = input("\nDo you approve this action? ([A]pprove / [R]eject): ").strip().lower()
-                    if user_choice in {"a", "approve", "yes", "y"}:
+                    user_choice = input(
+                        "\nDo you approve this action? ([A]pprove / [R]eject / [M]odify <notes>): "
+                    ).strip()
+                    choice_lower = user_choice.lower()
+                    if choice_lower in {"a", "approve", "yes", "y"}:
                         decision = "approved"
-                    elif user_choice in {"r", "reject", "no", "n"}:
+                    elif choice_lower in {"r", "reject", "no", "n"}:
                         decision = "rejected"
+                    elif choice_lower.startswith("m:") or choice_lower.startswith("modify"):
+                        decision = "rejected"
+                        # Extract feedback after prefix
+                        if ":" in user_choice:
+                            feedback = user_choice.split(":", 1)[1].strip()
+                        else:
+                            parts = user_choice.split(None, 1)
+                            feedback = parts[1].strip() if len(parts) > 1 else "Please revise options"
+                        print(f"[Revision Requested]: \"{feedback}\"")
                     else:
                         print("Unrecognized response; defaulting safely to REJECT.")
                         decision = "rejected"
@@ -94,8 +195,8 @@ def run_task(user_request: str, auto_decision: Optional[str] = None):
 
             if decision == "rejected":
                 print("\n>>> Proposal rejected. Routing back to Planning Agent for alternative options...")
-                graph.invoke(Command(resume="rejected"), config=config)
-                # If auto-decision was provided, switch to approve on next cycle so demo concludes
+                resume_payload: Any = {"decision": "rejected", "feedback": feedback} if feedback else "rejected"
+                graph.invoke(Command(resume=resume_payload), config=config)
                 if auto_decision == "reject_once":
                     auto_decision = "approved"
             else:
@@ -111,7 +212,7 @@ def run_task(user_request: str, auto_decision: Optional[str] = None):
     final_summary = final_state.values.get("final_summary", {})
 
     print("\n" + "=" * 65)
-    print("  FINAL RUN SUMMARY")
+    print("  TURN RUN SUMMARY")
     print("=" * 65)
     if final_summary and final_summary.get("executive_summary"):
         print(f"\n[AI Assistant Summary]:\n{final_summary['executive_summary']}\n")
@@ -122,6 +223,59 @@ def run_task(user_request: str, auto_decision: Optional[str] = None):
     print("=" * 65 + "\n")
 
 
+def run_task(user_request: str, auto_decision: Optional[str] = None):
+    """Run a single personal productivity task through the LangGraph pipeline."""
+    thread_id = f"session-{uuid.uuid4().hex[:6]}"
+    config = {"configurable": {"thread_id": thread_id}}
+    graph = create_task_graph(checkpointer=MemorySaver())
+    execute_turn(graph, config, user_request, auto_decision=auto_decision)
+
+
+def interactive_session():
+    """Interactive continuous conversation loop (REPL)."""
+    thread_id = f"session-{uuid.uuid4().hex[:6]}"
+    config = {"configurable": {"thread_id": thread_id}}
+    graph = create_task_graph(checkpointer=MemorySaver())
+
+    ollama_online = is_ollama_available()
+    llm_info = f"Ollama ({DEFAULT_OLLAMA_MODEL})" if ollama_online else "Deterministic / Heuristics"
+
+    print("\n" + "=" * 65)
+    print("  AI PERSONAL TASK EXECUTOR — INTERACTIVE CHAT MODE")
+    print(f"  Session ID : {thread_id}")
+    print(f"  LLM Engine : {llm_info}")
+    print("  Type your request, or commands: /help, /history, /status, /clear, /exit")
+    print("=" * 65 + "\n")
+
+    while True:
+        try:
+            user_input = input("You > ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\n\nGoodbye!")
+            break
+
+        if not user_input:
+            continue
+
+        cmd = user_input.lower()
+        if cmd in {"/exit", "/quit", "exit", "quit"}:
+            print("Session ended. Goodbye!")
+            break
+        elif cmd == "/help":
+            print_help()
+        elif cmd == "/status":
+            print_status(graph, config)
+        elif cmd == "/history":
+            print_history(graph, config)
+        elif cmd == "/clear":
+            thread_id = f"session-{uuid.uuid4().hex[:6]}"
+            config = {"configurable": {"thread_id": thread_id}}
+            graph = create_task_graph(checkpointer=MemorySaver())
+            print(f"\nSession state cleared. Starting new conversation (Session ID: {thread_id}).\n")
+        else:
+            execute_turn(graph, config, user_input)
+
+
 def main():
     """CLI entrypoint."""
     parser = argparse.ArgumentParser(description="AI Personal Task Executor CLI")
@@ -129,7 +283,13 @@ def main():
         "--request",
         "-r",
         type=str,
-        help="Custom productivity request to run",
+        help="Custom productivity request to run (single-shot)",
+    )
+    parser.add_argument(
+        "--interactive",
+        "-i",
+        action="store_true",
+        help="Start continuous interactive chat mode (REPL)",
     )
     parser.add_argument(
         "--demo",
@@ -147,6 +307,10 @@ def main():
         help="Automatically approve actions without prompting",
     )
     args = parser.parse_args()
+
+    if args.interactive:
+        interactive_session()
+        return
 
     if args.demo:
         demo_request = (
@@ -171,25 +335,40 @@ def main():
     print("\n" + "=" * 65)
     print("  AI PERSONAL TASK EXECUTOR — SELECT A WORKFLOW")
     print("=" * 65)
-    print("1. Primary Demo: Research + Plan + Approve + Schedule Cafe Event")
-    print("2. Variant 1: Direct Calendar Scheduling (Schedule meeting with Rahul)")
-    print("3. Variant 2: Research & Save Note (Find cafes & save Markdown note)")
-    print("4. Re-planning Demo (Reject first proposal -> Plan alternative -> Approve)")
-    print("5. Enter Custom Request")
+    print("1. Interactive Continuous Chat (REPL Mode - Multi-turn Conversation)")
+    print("2. Primary Demo: Research + Plan + Approve + Schedule Cafe Event")
+    print("3. Variant 1: Direct Calendar Scheduling (Schedule meeting with Rahul)")
+    print("4. Variant 2: Research & Save Note (Find cafes & save Markdown note)")
+    print("5. Re-planning Demo (Reject first proposal -> Plan alternative -> Approve)")
+    print("6. Single Custom Request")
     print("=" * 65)
 
     try:
-        choice = input("\nEnter choice (1-5) [Default: 1]: ").strip()
+        choice = input("\nEnter choice (1-6) [Default: 1]: ").strip()
     except (EOFError, KeyboardInterrupt):
         choice = "1"
 
     if choice == "2":
-        run_task("Schedule a meeting with Rahul tomorrow at 5 PM", auto_decision="approved" if args.auto_approve else None)
+        run_task(
+            "Find a cafe for 4 people this Saturday evening, under ₹3000, and schedule it on my calendar",
+            auto_decision="approved" if args.auto_approve else None,
+        )
     elif choice == "3":
-        run_task("Find 3 good cafes in Indiranagar and save the options", auto_decision="approved" if args.auto_approve else None)
+        run_task(
+            "Schedule a meeting with Rahul tomorrow at 5 PM",
+            auto_decision="approved" if args.auto_approve else None,
+        )
     elif choice == "4":
-        run_task("Find a cafe for 4 people this Saturday evening, under ₹3000, and schedule it on my calendar", auto_decision="reject_once")
+        run_task(
+            "Find 3 good cafes in Indiranagar and save the options",
+            auto_decision="approved" if args.auto_approve else None,
+        )
     elif choice == "5":
+        run_task(
+            "Find a cafe for 4 people this Saturday evening, under ₹3000, and schedule it on my calendar",
+            auto_decision="reject_once",
+        )
+    elif choice == "6":
         try:
             custom_req = input("\nEnter your request: ").strip()
         except (EOFError, KeyboardInterrupt):
@@ -199,11 +378,8 @@ def main():
         else:
             print("No request entered.")
     else:
-        # Default: 1
-        run_task(
-            "Find a cafe for 4 people this Saturday evening, under ₹3000, and schedule it on my calendar",
-            auto_decision="approved" if args.auto_approve else None,
-        )
+        # Default: 1 -> Interactive Continuous Chat REPL
+        interactive_session()
 
 
 if __name__ == "__main__":

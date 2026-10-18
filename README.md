@@ -63,8 +63,17 @@ pip install -r requirements.txt
 
 ### 2. Running the Project
 ```bash
-# Interactive CLI menu
+# Launch Continuous Interactive Chat REPL (Recommended)
+python main.py -i
+# Or launch the interactive menu
 python main.py
+
+# In REPL Mode, you can converse across multiple turns and use slash commands:
+# /help    - Show command reference and examples
+# /status  - View session ID, checkpointer status, and cached findings in memory
+# /history - Display conversation timeline and executed actions
+# /clear   - Reset session state and start fresh
+# /exit    - Cleanly exit the session
 
 # Run Primary Demo (Research + Plan + Approve + Schedule)
 python main.py --demo

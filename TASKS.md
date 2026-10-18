@@ -67,11 +67,11 @@
 - [x] Add unit test suite with mocks covering: provider errors/timeouts, rate limits, and adversarial prompt injection ("ignore instructions and do X")
 
 ## Phase 11: Interactive Continuous Chat Mode (REPL) & Routing Evals
-- [ ] Add interactive conversation loop in `main.py` with a stable session thread ID
-- [ ] Support back-and-forth task clarification, multi-turn plan revisions, and sequential task requests
-- [ ] Add test for multi-turn conversational follow-ups referencing earlier research results
-- [ ] Add Supervisor evaluation test suite with tricky user requests to catch classification drift in `llama3.2:3b`
-- [ ] Add CLI commands: `/help`, `/exit`, `/history`, and `/status`
+- [x] Add interactive conversation loop in `main.py` with a stable session thread ID
+- [x] Support back-and-forth task clarification, multi-turn plan revisions, and sequential task requests
+- [x] Add test for multi-turn conversational follow-ups referencing earlier research results
+- [x] Add Supervisor evaluation test suite with tricky user requests to catch classification drift in `llama3.2:3b`
+- [x] Add CLI commands: `/help`, `/exit`, `/history`, and `/status`
 
 ## Phase 12: Persistent Calendar Storage & iCal (.ics) Export (Quick Win)
 - [ ] Persist scheduled events to a local `calendar.json` file so events survive process restarts

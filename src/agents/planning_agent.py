@@ -65,6 +65,60 @@ def extract_schedule_details(user_request: Optional[str]) -> Dict[str, str]:
     }
 
 
+def resolve_reference_from_research(
+    user_request: str, research_results: List[Dict[str, Any]]
+) -> Optional[Dict[str, Any]]:
+    """Resolve ordinal or contextual venue references to a specific item from earlier research."""
+    if not research_results or not user_request:
+        return None
+    req = user_request.lower()
+
+    # Ordinal matching (1st, 2nd, 3rd, first, second, third, option 1, option 2...)
+    if re.search(r"\b(first|1st|option\s*1|recommendation\s*1)\b", req):
+        if len(research_results) >= 1:
+            return research_results[0]
+    if re.search(r"\b(second|2nd|option\s*2|recommendation\s*2)\b", req):
+        if len(research_results) >= 2:
+            return research_results[1]
+    if re.search(r"\b(third|3rd|option\s*3|recommendation\s*3)\b", req):
+        if len(research_results) >= 3:
+            return research_results[2]
+
+    # Substring matching against research titles
+    for item in research_results:
+        title = item.get("title", "")
+        if title and len(title) > 3 and title.lower() in req:
+            return item
+
+    # Contextual reference ("at the cafe", "at that venue", "at the first option", "there")
+    if re.search(r"\b(?:at\s+)?(?:the\s+)?(?:cafe|restaurant|venue|place|option|choice|there)\b", req):
+        return research_results[0]
+
+    return None
+
+
+def apply_user_feedback(details: Dict[str, str], user_feedback: Optional[str]) -> Dict[str, str]:
+    """Update scheduling details based on explicit user feedback string."""
+    if not user_feedback:
+        return details
+    fb_lower = user_feedback.lower()
+
+    # Check for time updates in feedback
+    time_match = re.search(r"\b(\d{1,2}(?::\d{2})?\s*(?:am|pm)|evening|morning|afternoon|night)\b", fb_lower)
+    if time_match:
+        details["time"] = time_match.group(1).upper()
+
+    # Check for date updates in feedback
+    date_match = re.search(
+        r"\b(today|tomorrow|this\s+(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend)|next\s+(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)|saturday|sunday|monday|tuesday|wednesday|thursday|friday)\b",
+        fb_lower,
+    )
+    if date_match:
+        details["date"] = date_match.group(1).title()
+
+    return details
+
+
 class PlanningAgent:
     """Planning Agent that constructs explicit action payloads and handles re-planning."""
 
@@ -82,6 +136,7 @@ class PlanningAgent:
         research_results = state.get("research_results") or []
         previous_action = state.get("proposed_action") or {}
         was_rejected = state.get("approval_status") == "rejected"
+        user_feedback = state.get("user_feedback")
 
         current_revision = previous_action.get("revision", 1)
         next_revision = current_revision + 1 if was_rejected else 1
@@ -90,34 +145,66 @@ class PlanningAgent:
         option_index = (next_revision - 1) % max(len(research_results), 1)
 
         if task_type == TASK_TYPE_SCHEDULE:
-            action_payload = self._plan_schedule(user_request, next_revision, was_rejected)
+            action_payload = self._plan_schedule(
+                user_request, next_revision, was_rejected, research_results=research_results, user_feedback=user_feedback
+            )
         elif task_type == TASK_TYPE_RESEARCH_AND_SAVE:
             action_payload = self._plan_research_and_save(user_request, research_results, next_revision, was_rejected)
         else:  # TASK_TYPE_RESEARCH_AND_ACTION
             action_payload = self._plan_research_and_action(
-                user_request, research_results, option_index, next_revision, was_rejected
+                user_request, research_results, option_index, next_revision, was_rejected, user_feedback=user_feedback
             )
 
         return {
             "proposed_action": action_payload,
             "approval_status": "pending",
+            "user_feedback": None,
         }
 
-    def _plan_schedule(self, user_request: str, revision: int, was_rejected: bool) -> Dict[str, Any]:
-        """Construct a calendar scheduling action payload."""
+    def _plan_schedule(
+        self,
+        user_request: str,
+        revision: int,
+        was_rejected: bool,
+        research_results: Optional[List[Dict[str, Any]]] = None,
+        user_feedback: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Construct a calendar scheduling action payload, resolving any earlier research references."""
         details = extract_schedule_details(user_request)
 
-        # On rejection, adjust time slightly as an alternative proposal
-        time_slot = details["time"]
-        if was_rejected:
-            time_slot = f"{details['time']} (alternative 30m offset)"
+        # Check if this scheduling request references an earlier research finding
+        resolved_finding = resolve_reference_from_research(user_request, research_results or [])
 
-        title = details["title"]
+        if user_feedback:
+            details = apply_user_feedback(details, user_feedback)
+        elif was_rejected:
+            details["time"] = f"{details['time']} (alternative 30m offset)"
+
+        time_slot = details["time"]
         date = details["date"]
 
-        summary = f"Schedule calendar event: '{title}' on {date} at {time_slot}"
+        if resolved_finding:
+            venue_title = resolved_finding.get("title", "Selected Venue")
+            location = venue_title
+            if "meeting with" in user_request.lower():
+                title = f"{details['title']} at {venue_title}"
+            else:
+                title = f"Visit {venue_title}"
+            description = (
+                f"Scheduled from session research findings.\n"
+                f"Venue: {venue_title}\n"
+                f"Details: {resolved_finding.get('details', '')}\n"
+                f"Source: {resolved_finding.get('url', resolved_finding.get('source', ''))}"
+            )
+            summary = f"Schedule calendar event: '{title}' on {date} at {time_slot} at {location} (referencing earlier research)"
+        else:
+            title = details["title"]
+            location = "To be determined"
+            description = f"Scheduled via AI Personal Task Executor based on request: '{user_request}'"
+            summary = f"Schedule calendar event: '{title}' on {date} at {time_slot}"
+
         if was_rejected:
-            summary += " (Revised proposal following rejection)"
+            summary += f" (Revision #{revision} following feedback)"
 
         return {
             "type": "create_event",
@@ -128,7 +215,8 @@ class PlanningAgent:
                 "title": title,
                 "date": date,
                 "time": time_slot,
-                "description": f"Scheduled via AI Personal Task Executor based on request: '{user_request}'",
+                "location": location,
+                "description": description,
             },
         }
 
@@ -200,9 +288,12 @@ class PlanningAgent:
         option_index: int,
         revision: int,
         was_rejected: bool,
+        user_feedback: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Construct a calendar event action payload synthesized from research findings."""
         sched_details = extract_schedule_details(user_request)
+        if user_feedback:
+            sched_details = apply_user_feedback(sched_details, user_feedback)
 
         # Select option based on index (cycles to next alternative if rejected)
         selected_finding: Optional[Dict[str, Any]] = None
