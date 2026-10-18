@@ -57,14 +57,14 @@
 - [x] Verify complete test suite (76/76 passing in ~4s) and live CLI run
 
 ## Phase 10: Live Web Search & Scraping (Highest Priority)
-- [ ] Replace mock index with real live web search (DuckDuckGo Search via `duckduckgo-search` or Tavily API)
-- [ ] Replace hardcoded `fetch_page()` with live HTTP fetching and clean HTML extraction (`requests` + `beautifulsoup4`)
-- [ ] Implement relevance scoring: filter candidate results by keyword/token overlap against user criteria before selection
-- [ ] Handle invalid URLs, HTTP errors, network timeouts, and unsupported MIME types gracefully without crashing
-- [ ] Implement honest failure handling: Never fabricate results; return an explicit "Search yielded no results" if queries fail
-- [ ] Treat scraped web text as untrusted (prompt injection defense before feeding to agent planning)
-- [ ] Keep source URLs in state for full citation traceability
-- [ ] Add unit test suite with mocks covering: provider errors/timeouts, rate limits, and adversarial prompt injection ("ignore instructions and do X")
+- [x] Replace mock index with real live web search (DuckDuckGo Search via `duckduckgo-search` / `ddgs` or Tavily API)
+- [x] Replace hardcoded `fetch_page()` with live HTTP fetching and clean HTML extraction (`requests` + `beautifulsoup4`)
+- [x] Implement relevance scoring: filter candidate results by keyword/token overlap against user criteria before selection
+- [x] Handle invalid URLs, HTTP errors, network timeouts, and unsupported MIME types gracefully without crashing
+- [x] Implement honest failure handling: Never fabricate results; return an explicit "Search yielded no results" if queries fail
+- [x] Treat scraped web text as untrusted (prompt injection defense before feeding to agent planning)
+- [x] Keep source URLs in state for full citation traceability
+- [x] Add unit test suite with mocks covering: provider errors/timeouts, rate limits, and adversarial prompt injection ("ignore instructions and do X")
 
 ## Phase 11: Interactive Continuous Chat Mode (REPL) & Routing Evals
 - [ ] Add interactive conversation loop in `main.py` with a stable session thread ID

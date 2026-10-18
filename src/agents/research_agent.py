@@ -14,8 +14,7 @@ Responsible for:
 import re
 from typing import Any, Dict, List, Optional
 from src.graph.state import AgentState
-from src.mcp.search_mcp import search, fetch_page
-from src.utils.llm import is_ollama_available, llm_synthesize_findings
+from src.mcp.search_mcp import search, fetch_page, score_relevance, sanitize_untrusted_content
 
 DEFAULT_MAX_ITERATIONS = 3
 
@@ -94,7 +93,9 @@ class ResearchAgent:
                     page_text = fetch_page(url)
                     iterations += 1
                     if page_text and not page_text.startswith("Error"):
-                        details = page_text[:200]
+                        details = page_text[:300]
+                else:
+                    details = sanitize_untrusted_content(snippet)
 
                 findings.append({
                     "title": title,
@@ -110,22 +111,8 @@ class ResearchAgent:
             if len(findings) >= 3:
                 break
 
-        # If all findings collected are the generic fallback ("Information regarding..."),
-        # and Ollama is available, synthesize realistic findings dynamically
-        is_all_generic = findings and all("information regarding" in f.get("title", "").lower() for f in findings)
-        if (not findings or is_all_generic) and is_ollama_available():
-            llm_items = llm_synthesize_findings(query=req, num_results=3)
-            if llm_items:
-                findings = [
-                    {
-                        "title": item["title"],
-                        "details": item["snippet"],
-                        "url": item["url"],
-                        "source": "Search MCP",
-                    }
-                    for item in llm_items
-                ]
-
+        # Sort findings by relevance to the user's explicit request criteria
+        findings.sort(key=lambda item: score_relevance(req, item), reverse=True)
         return findings
 
 

@@ -37,13 +37,13 @@ See the [docs/](docs/README.md) directory for full project specifications and ar
 
 ## Status & Capabilities
 
-- **Phases 1–9 Complete:** Fully implemented, human-in-the-loop verified, powered by local Ollama (`llama3.2:3b`), and passing 76 automated tests.
+- **Phases 1–10 Complete:** Fully implemented, live DuckDuckGo search & web scraping, human-in-the-loop verified, powered by local Ollama (`llama3.2:3b`), and passing 86 automated tests.
 - **Real vs Simulated Boundaries:**
   - 🟢 **Local LLM Inference:** **100% Real** (Runs locally via Ollama `llama3.2:3b` for dynamic reasoning and synthesis).
+  - 🟢 **Live Web Search & Scraping:** **100% Real** (Real DuckDuckGo web search via `ddgs`, live HTTP scraping with `requests` + `BeautifulSoup`, keyword relevance scoring, and prompt injection defense).
   - 🟢 **Notes Persistence:** **100% Real** (Saves formatted `.md` Markdown files to `./notes/`).
   - 🟢 **LangGraph Pipeline:** **100% Real** (State routing, ReAct loop, interrupt pause, human approval/rejection).
   - 🟡 **Calendar MCP:** **In-Memory Simulation** (Stores events in Python RAM during process execution; disk persistence and `.ics` export scheduled for Phase 12).
-  - 🟡 **Search MCP:** **Synthesized Knowledge** (Curated local index + Ollama intelligence; live web scraping scheduled for Phase 10).
   - 🟡 **Session Memory:** **In-Memory** (`MemorySaver()`; persistent SQLite checkpointer scheduled for Phase 14).
 
 
