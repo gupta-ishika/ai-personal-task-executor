@@ -118,3 +118,90 @@ class TestResearchAgent:
             assert len(findings) == 2
             # The keyboard finding must be ranked first due to relevance scoring
             assert "Mechanical Keyboards" in findings[0]["title"]
+
+    def test_separate_operation_budgets_independent(self):
+        """Issue 1 Fix: Verify search budget and page fetch budget are strictly separated."""
+        from unittest.mock import patch, MagicMock
+        agent = ResearchAgent(max_search_calls=1, max_page_fetches=1)
+        
+        mock_results = [
+            {"title": "Cafe 1", "snippet": "Short", "url": "https://example.com/c1", "source": "Search MCP"},
+            {"title": "Cafe 2", "snippet": "Short", "url": "https://example.com/c2", "source": "Search MCP"},
+        ]
+        with patch("src.agents.research_agent.search", return_value=mock_results) as mock_search, \
+             patch("src.agents.research_agent.fetch_page", return_value="Page details") as mock_fetch:
+            findings = agent.run("Find cafes in Indiranagar")
+            assert mock_search.call_count == 1
+            # Max page fetches is 1, so only 1 fetch call occurs even though 2 snippets were short
+            assert mock_fetch.call_count == 1
+
+    def test_dynamic_decide_next_query(self):
+        """Issue 2 Fix: Dynamic reflection decides whether to continue research or stop."""
+        agent = ResearchAgent()
+        
+        # When 3 findings already exist, next query should be None (complete)
+        three_findings = [{"title": f"T{i}", "details": f"D{i}"} for i in range(3)]
+        next_q = agent._decide_next_query("Find cafes", three_findings, {"find cafes"}, ["cafe"])
+        assert next_q is None
+
+        # When 0 findings exist, next query dynamically refines with broader keywords
+        next_q_refine = agent._decide_next_query("Find top cafes in Indiranagar Bangalore", [], {"top cafes in indiranagar"}, ["cafes", "indiranagar", "bangalore"])
+        assert next_q_refine is not None
+        assert "cafes" in next_q_refine
+
+    def test_url_and_candidate_validation(self):
+        """Issue 3 Fix: Comprehensive validation of URL and schema."""
+        from src.agents.research_agent import is_valid_url
+        from unittest.mock import patch
+        
+        assert is_valid_url("") is False
+        assert is_valid_url(None) is False
+        assert is_valid_url("javascript:alert(1)") is False
+        assert is_valid_url("ftp://example.com") is False
+        assert is_valid_url("http://nodot") is False
+        assert is_valid_url("https://example.com/page") is True
+
+        agent = ResearchAgent()
+        mock_invalid = [
+            {"title": "Bad URL", "snippet": "Text", "url": "not-a-valid-url"},
+            {"title": "", "snippet": "", "url": "https://example.com/empty"},
+            {"title": "Good Item", "snippet": "Valid snippet", "url": "https://example.com/valid", "source": "Search MCP"},
+        ]
+        with patch("src.agents.research_agent.search", return_value=mock_invalid):
+            findings = agent.run("Valid query")
+            # Only the valid item should be retained
+            assert len(findings) == 1
+            assert findings[0]["title"] == "Good Item"
+
+    def test_context_aware_excerpt_extraction(self):
+        """Issue 4 Fix: Extract context-aware sentences containing keywords rather than raw prefix."""
+        from src.agents.research_agent import extract_relevant_excerpt
+        
+        page_html_text = (
+            "Home About Us Contact Terms Cookie Policy Privacy Policy. "
+            "Our Indiranagar branch offers delicious artisan coffee starting at ₹250. "
+            "Seating capacity for 4 people with outdoor deck. "
+            "Footer copyright 2026 all rights reserved."
+        )
+        excerpt = extract_relevant_excerpt(page_html_text, ["indiranagar", "coffee", "₹250", "4 people"])
+        # Should pick the relevant sentences with keywords and price, not the cookie policy
+        assert "artisan coffee starting at ₹250" in excerpt
+        assert "Terms Cookie Policy" not in excerpt
+
+    def test_defensive_error_handling_on_tool_exceptions(self):
+        """Issue 6 Fix: Exceptions from search() or fetch_page() do not crash the agent."""
+        from unittest.mock import patch
+        agent = ResearchAgent()
+        
+        # Test search raising network error
+        with patch("src.agents.research_agent.search", side_effect=RuntimeError("Search network timeout")):
+            findings = agent.run("Find cafes in Bangalore")
+            assert findings == []
+
+        # Test fetch_page raising unexpected exception
+        mock_results = [{"title": "Cafe", "snippet": "Short", "url": "https://example.com/c1", "source": "Search MCP"}]
+        with patch("src.agents.research_agent.search", return_value=mock_results), \
+             patch("src.agents.research_agent.fetch_page", side_effect=ConnectionError("Fetch reset")):
+            findings = agent.run("Find cafes")
+            assert len(findings) == 1
+            assert findings[0]["title"] == "Cafe"
